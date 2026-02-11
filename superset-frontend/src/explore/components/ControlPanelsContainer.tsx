@@ -45,6 +45,7 @@ import {
 import { styled, css, SupersetTheme, useTheme } from '@apache-superset/core/ui';
 import {
   ControlPanelSectionConfig,
+  ControlPanelState,
   ControlState,
   CustomControlItem,
   Dataset,
@@ -95,7 +96,8 @@ const MATRIXIFY_INCOMPATIBLE_CHARTS = new Set([
 
 export type ControlPanelsContainerProps = {
   exploreState: ExploreState; // This is the .present value from the undoable explore reducer
-  actions: ExploreActions;
+  // Only setControlValue is used from actions in this component
+  actions: Pick<ExploreActions, 'setControlValue'>;
   datasource_type: DatasourceType;
   chart: ChartState;
   controls: Record<string, ControlState>;
@@ -469,8 +471,8 @@ export const ControlPanelsContainer = (props: ControlPanelsContainerProps) => {
 
     return Boolean(
       config.shouldMapStateToProps?.(
-        prevState || exploreState,
-        exploreState,
+        (prevState || exploreState) as unknown as ControlPanelState,
+        exploreState as unknown as ControlPanelState,
         controls[name],
         chart,
       ),
@@ -488,7 +490,11 @@ export const ControlPanelsContainer = (props: ControlPanelsContainerProps) => {
       ...restConfig,
       ...controls[name],
       ...(shouldRecalculateControlState({ name, config })
-        ? config?.mapStateToProps?.(exploreState, controls[name], chart)
+        ? config?.mapStateToProps?.(
+            exploreState as unknown as ControlPanelState,
+            controls[name],
+            chart,
+          )
         : // for other controls, `mapStateToProps` is already run in
           // controlUtils/getControlState.ts
           undefined),
@@ -514,12 +520,20 @@ export const ControlPanelsContainer = (props: ControlPanelsContainerProps) => {
 
     const label =
       typeof baseLabel === 'function'
-        ? baseLabel(exploreState, controls[name], chart)
+        ? baseLabel(
+            exploreState as unknown as ControlPanelState,
+            controls[name],
+            chart,
+          )
         : baseLabel;
 
     const description =
       typeof baseDescription === 'function'
-        ? baseDescription(exploreState, controls[name], chart)
+        ? baseDescription(
+            exploreState as unknown as ControlPanelState,
+            controls[name],
+            chart,
+          )
         : baseDescription;
 
     if (name.includes('adhoc_filters')) {

@@ -220,5 +220,5 @@ export const hydrateExplore =
 
 export type HydrateExplore = {
   type: typeof HYDRATE_EXPLORE;
-  data: ExplorePageState;
+  data: import('../types').ExplorePageInitialState;
 };

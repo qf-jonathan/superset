@@ -88,6 +88,7 @@ export interface ExplorePageInitialData {
     owners: string[];
     created_by?: string;
     changed_by?: string;
+    color_namespace?: string;
     dashboards?: {
       id: number;
       dashboard_title: string;
@@ -105,6 +106,7 @@ export interface ExploreState {
   can_download: boolean;
   can_overwrite: boolean;
   isDatasourceMetaLoading: boolean;
+  isDatasourcesLoading?: boolean;
   isStarred: boolean;
   triggerRender: boolean;
   // duplicate datasource in exploreState - it's needed by getControlsState
@@ -112,11 +114,35 @@ export interface ExploreState {
   controls: ControlStateMapping;
   form_data: QueryFormData;
   hiddenFormData?: Partial<QueryFormData>;
-  slice: Slice;
+  slice: Slice | null;
+  sliceName?: string;
   controlsTransferred: string[];
   standalone: boolean;
   force: boolean;
   common: JsonObject;
+  metadata?: {
+    owners?: string[] | null;
+  };
+  saveAction?: SaveActionType | null;
+}
+
+// Type for hydration data before redux-undo wrapping
+export interface ExplorePageInitialState {
+  charts: { [key: number]: ChartState };
+  datasources: { [key: string]: Dataset };
+  explore: ExploreState;
+  saveModal?: {
+    dashboards: any[];
+    saveModalAlert: any;
+    isVisible: boolean;
+  };
+}
+
+// Type for the redux-undo wrapped explore state
+export interface UndoableExploreState {
+  past: ExploreState[];
+  present: ExploreState;
+  future: ExploreState[];
 }
 
 export interface ExplorePageState {
@@ -128,11 +154,7 @@ export interface ExplorePageState {
   charts: { [key: number]: ChartState };
   datasources: { [key: string]: Dataset };
   // explore is wrapped with redux-undo, so it has past/present/future structure
-  explore: {
-    past: ExploreState[];
-    present: ExploreState;
-    future: ExploreState[];
-  };
+  explore: UndoableExploreState;
   sliceEntities?: JsonObject; // propagated from Dashboard view
 }
 
