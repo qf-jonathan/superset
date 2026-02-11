@@ -202,11 +202,11 @@ const Styles = styled.div`
 const isTimeSection = (section: ControlPanelSectionConfig): boolean =>
   !!section.label && sections.legacyTimeseriesTime.label === section.label;
 
-const hasTimeColumn = (datasource: Dataset): boolean =>
-  datasource?.columns?.some(c => c.is_dttm);
+const hasTimeColumn = (datasource?: Dataset): boolean =>
+  datasource?.columns?.some(c => c.is_dttm) ?? false;
 const sectionsToExpand = (
   sections: ControlPanelSectionConfig[],
-  datasource: Dataset,
+  datasource?: Dataset,
 ): string[] =>
   // avoid expanding time section if datasource doesn't include time column
   sections.reduce(
@@ -220,7 +220,7 @@ const sectionsToExpand = (
 
 function getState(
   vizType: string,
-  datasource: Dataset,
+  datasource: Dataset | undefined,
   datasourceType: DatasourceType,
 ) {
   const querySections: ControlPanelSectionConfig[] = [];
@@ -439,10 +439,10 @@ export const ControlPanelsContainer = (props: ControlPanelsContainerProps) => {
     () =>
       getState(
         form_data.viz_type,
-        props.exploreState.datasource,
+        props.exploreState?.datasource,
         props.datasource_type,
       ),
-    [props.exploreState.datasource, form_data.viz_type, props.datasource_type],
+    [props.exploreState?.datasource, form_data.viz_type, props.datasource_type],
   );
 
   const resetTransferredControls = useCallback(() => {

@@ -81,6 +81,7 @@ import {
   Datasource,
   ExplorePageInitialData,
   ExplorePageState,
+  ExploreState,
   SaveActionType,
 } from 'src/explore/types';
 import { Slice } from 'src/types/Chart';
@@ -333,7 +334,7 @@ interface StateProps {
   ownState?: JsonObject;
   impressionId: string;
   user: User;
-  exploreState: ExplorePageState['explore'];
+  exploreState: ExploreState; // This is the unwrapped .present value from the undoable reducer
   reports: JsonObject;
   metadata?: ExplorePageInitialData['metadata'];
   saveAction?: SaveActionType | null;
@@ -1015,7 +1016,7 @@ function ExploreViewContainer(props: ExploreViewContainerProps) {
           className="col-sm-3 explore-column controls-column"
         >
           <ConnectedControlPanelsContainer
-            exploreState={props.exploreState.present}
+            exploreState={props.exploreState}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Combined actions type is compatible at runtime
             actions={props.actions as any}
             form_data={props.form_data}
@@ -1085,6 +1086,10 @@ function mapStateToProps(state: ExploreRootState) {
   const { charts, common, impressionId, dataMask, reports, user, saveModal } =
     state;
   // Access explore.present because explore reducer is wrapped with redux-undo
+  // If explore state hasn't been initialized yet, return null to prevent rendering
+  if (!state.explore?.present) {
+    return null as any;
+  }
   const explore = state.explore.present;
   const { controls, slice, datasource, metadata, hiddenFormData } = explore;
   const hasQueryMode = !!controls?.query_mode?.value;
@@ -1193,9 +1198,9 @@ function mapStateToProps(state: ExploreRootState) {
     ownState: dataMask[slice_id]?.ownState,
     impressionId,
     user,
-    // ExploreRootState['explore'] is compatible with ExplorePageState['explore']
-    // but has additional optional fields; casting is safe here
-    exploreState: explore as unknown as ExplorePageState['explore'],
+    // exploreState should be the unwrapped ExploreState (the .present value)
+    // not the undoable state structure
+    exploreState: explore,
     reports,
     metadata,
     saveAction: explore.saveAction,
